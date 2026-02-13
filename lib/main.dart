@@ -3,25 +3,55 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ArcticVpnApp());
+  runApp(const ArcticVPNApp());
 }
 
-class ArcticVpnApp extends StatelessWidget {
-  const ArcticVpnApp({super.key});
+class ArcticVPNApp extends StatefulWidget {
+  const ArcticVPNApp({super.key});
+
+  @override
+  State<ArcticVPNApp> createState() => _ArcticVPNAppState();
+}
+
+class _ArcticVPNAppState extends State<ArcticVPNApp> {
+  bool isDark = false;
+
+  void toggleTheme() {
+    setState(() {
+      isDark = !isDark;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Arctic VPN',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true),
-      home: const HomeScreen(),
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      home: HomeScreen(
+        isDark: isDark,
+        toggleTheme: toggleTheme,
+      ),
     );
   }
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isDark;
+  final VoidCallback toggleTheme;
+
+  const HomeScreen({
+    super.key,
+    required this.isDark,
+    required this.toggleTheme,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -29,258 +59,237 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isConnected = false;
-  int sessionSeconds = 0;
-  Timer? _timer;
+  int seconds = 0;
+  double speed = 0;
+  Timer? timer;
+  Timer? speedTimer;
 
-  final String expiryDate = "19.03.2026";
-  final double usedGB = 31.3;
-  final double totalGB = 100.0;
+  void toggleVPN() {
+    setState(() {
+      isConnected = !isConnected;
+    });
 
-  late String userId;
-
-  @override
-  void initState() {
-    super.initState();
-    userId =
-        (Random().nextInt(90000000000) + 10000000000).toString();
+    if (isConnected) {
+      startTimer();
+      startSpeed();
+    } else {
+      stopTimer();
+      stopSpeed();
+    }
   }
 
   void startTimer() {
-    _timer?.cancel();
-    sessionSeconds = 0;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
-        sessionSeconds++;
+        seconds++;
       });
     });
   }
 
   void stopTimer() {
-    _timer?.cancel();
-    sessionSeconds = 0;
+    timer?.cancel();
+    seconds = 0;
   }
 
-  // ✅ ИСПРАВЛЕННЫЙ МЕТОД
-  String getSessionTime() {
-    int minutes = sessionSeconds ~/ 60;
-    int seconds = sessionSeconds % 60;
+  void startSpeed() {
+    speedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {
+        speed = Random().nextDouble() * 50;
+      });
+    });
+  }
 
-    return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+  void stopSpeed() {
+    speedTimer?.cancel();
+    speed = 0;
+  }
+
+  String get formattedTime {
+    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return "$minutes:$secs";
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    timer?.cancel();
+    speedTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final textColor = widget.isDark ? Colors.white : Colors.black;
+    final cardColor =
+        widget.isDark ? Colors.grey.shade900 : Colors.grey.shade200;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: const Color(0xFF0A1421),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Arctic VPN',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 8),
-            child: Icon(Icons.settings, size: 24),
-          ),
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.send, size: 24),
-          ),
-        ],
-      ),
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin:
-                          const EdgeInsets.symmetric(horizontal: 40),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                            color: Colors.white.withOpacity(0.2)),
-                      ),
-                      child: const Text(
-                        'Чтобы выключить\nVPN нажмите на кнопку',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1.4,
-                          color: Colors.white,
-                        ),
-                      ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "ARCTIC VPN",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
-                    const SizedBox(height: 48),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    color: textColor,
+                    onPressed: widget.toggleTheme,
+                  ),
+                ],
+              ),
+            ),
 
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isConnected = !isConnected;
-                        });
+            const SizedBox(height: 30),
 
-                        if (isConnected) {
-                          startTimer();
-                        } else {
-                          stopTimer();
-                        }
-                      },
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: isConnected
-                                ? [
-                                    const Color(0xFF4CAF50),
-                                    const Color(0xFF1B5E20)
-                                  ]
-                                : [
-                                    const Color(0xFF40C4FF),
-                                    const Color(0xFF01579B)
-                                  ],
-                          ),
-                          boxShadow: isConnected
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.greenAccent
-                                        .withOpacity(0.5),
-                                    blurRadius: 40,
-                                    spreadRadius: 20,
-                                  )
-                                ]
-                              : [],
-                        ),
-                        child: const Icon(
-                          Icons.ac_unit_rounded,
-                          size: 160,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    Text(
-                      isConnected
-                          ? 'Connected ❄️'
-                          : 'Disconnected',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: isConnected
-                            ? Colors.greenAccent
-                            : Colors.redAccent,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Подписка до $expiryDate',
-                      style: const TextStyle(
-                          fontSize: 18, color: Colors.white70),
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (isConnected)
-                      Text(
-                        'Сеанс: ${getSessionTime()}',
-                        style: const TextStyle(
-                            fontSize: 20, color: Colors.white),
-                      ),
-                  ],
+            // Hint Card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isConnected
+                    ? "Чтобы выключить VPN нажмите на кнопку"
+                    : "Чтобы включить VPN нажмите на кнопку",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: textColor,
                 ),
               ),
             ),
 
+            const SizedBox(height: 40),
+
+            // Main Button
+            GestureDetector(
+              onTap: toggleVPN,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isConnected
+                      ? Colors.blue
+                      : (widget.isDark
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isConnected
+                          ? Colors.blue.withOpacity(0.6)
+                          : Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    )
+                  ],
+                ),
+                child: const Icon(
+                  Icons.ac_unit,
+                  size: 80,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Timer
+            Text(
+              formattedTime,
+              style: TextStyle(
+                fontSize: 26,
+                color: textColor,
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Speed Cards
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 16),
-              child: Column(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCard(
-                          title: 'Скорость',
-                          value: '0 Мбит/с',
-                          icon: Icons.speed,
-                        ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildCard(
-                          title: 'Осталось',
-                          value:
-                              '${(totalGB - usedGB).toStringAsFixed(1)} ГБ / $totalGB ГБ',
-                          icon: Icons.data_usage,
-                        ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "СКОРОСТЬ",
+                            style: TextStyle(color: textColor),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            "${speed.toStringAsFixed(1)} мбит/с",
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'ID: $userId',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "ДО",
+                            style: TextStyle(color: textColor),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            "13.04",
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+
+            const Spacer(),
+
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Text(
+                "ID: 4829105736",
+                style: TextStyle(color: textColor.withOpacity(0.7)),
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCard({
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white70, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-                fontSize: 14, color: Colors.white70),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }
