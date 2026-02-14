@@ -1,68 +1,40 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart' as inset;
 
 void main() {
-  runApp(const ArcticVPNApp());
+  runApp(const ArcticApp());
 }
 
-class ArcticVPNApp extends StatefulWidget {
-  const ArcticVPNApp({super.key});
-
-  @override
-  State<ArcticVPNApp> createState() => _ArcticVPNAppState();
-}
-
-class _ArcticVPNAppState extends State<ArcticVPNApp> {
-  bool isDark = false;
-
-  void toggleTheme() {
-    setState(() {
-      isDark = !isDark;
-    });
-  }
+class ArcticApp extends StatelessWidget {
+  const ArcticApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
+        platform: TargetPlatform.iOS,
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-      ),
-      home: HomeScreen(
-        isDark: isDark,
-        toggleTheme: toggleTheme,
-      ),
+      home: const ArcticHome(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  final bool isDark;
-  final VoidCallback toggleTheme;
-
-  const HomeScreen({
-    super.key,
-    required this.isDark,
-    required this.toggleTheme,
-  });
+class ArcticHome extends StatefulWidget {
+  const ArcticHome({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ArcticHome> createState() => _ArcticHomeState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ArcticHomeState extends State<ArcticHome> {
   bool isConnected = false;
   int seconds = 0;
-  double speed = 0;
   Timer? timer;
-  Timer? speedTimer;
+  double fakeSpeed = 0;
+  final Random random = Random();
 
   void toggleVPN() {
     setState(() {
@@ -70,209 +42,99 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     if (isConnected) {
-      startTimer();
-      startSpeed();
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        setState(() {
+          seconds++;
+          fakeSpeed = 40 + random.nextDouble() * 80;
+        });
+      });
     } else {
-      stopTimer();
-      stopSpeed();
+      timer?.cancel();
+      setState(() {
+        seconds = 0;
+        fakeSpeed = 0;
+      });
     }
   }
 
-  void startTimer() {
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        seconds++;
-      });
-    });
-  }
-
-  void stopTimer() {
-    timer?.cancel();
-    seconds = 0;
-  }
-
-  void startSpeed() {
-    speedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        speed = Random().nextDouble() * 50;
-      });
-    });
-  }
-
-  void stopSpeed() {
-    speedTimer?.cancel();
-    speed = 0;
-  }
-
-  String get formattedTime {
-    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (seconds % 60).toString().padLeft(2, '0');
-    return "$minutes:$secs";
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    speedTimer?.cancel();
-    super.dispose();
+  String formatTime(int totalSeconds) {
+    final m = totalSeconds ~/ 60;
+    final s = totalSeconds % 60;
+    return "${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}";
   }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = widget.isDark ? Colors.white : Colors.black;
-    final cardColor =
-        widget.isDark ? Colors.grey.shade900 : Colors.grey.shade200;
+    const bg = Color(0xFFF2F2F7);
 
     return Scaffold(
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "ARCTIC VPN",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    color: textColor,
-                    onPressed: widget.toggleTheme,
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 16),
 
-            // Hint Card
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 30),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                isConnected
-                    ? "Чтобы выключить VPN нажмите на кнопку"
-                    : "Чтобы включить VPN нажмите на кнопку",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: textColor,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Main Button
-            GestureDetector(
-              onTap: toggleVPN,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isConnected
-                      ? Colors.blue
-                      : (widget.isDark
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade300),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isConnected
-                          ? Colors.blue.withOpacity(0.6)
-                          : Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    )
-                  ],
-                ),
-                child: const Icon(
-                  Icons.ac_unit,
-                  size: 80,
-                  color: Colors.white,
-                ),
+            const Text(
+              "ARCTIC VPN",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1,
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Timer
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                isConnected
+                    ? "VPN подключён"
+                    : "Чтобы включить VPN нажмите кнопку ниже",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 50),
+
+            /// MAIN BUTTON
+            GestureDetector(
+              onTap: toggleVPN,
+              child: _NeumorphicButton(isConnected: isConnected),
+            ),
+
+            const SizedBox(height: 30),
+
             Text(
-              formattedTime,
-              style: TextStyle(
-                fontSize: 26,
-                color: textColor,
+              formatTime(seconds),
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
               ),
             ),
 
             const SizedBox(height: 40),
 
-            // Speed Cards
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "СКОРОСТЬ",
-                            style: TextStyle(color: textColor),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "${speed.toStringAsFixed(1)} мбит/с",
-                            style: TextStyle(
-                              fontSize: 22,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: _InfoCard(
+                      title: "СКОРОСТЬ",
+                      value: "${fakeSpeed.toStringAsFixed(1)} мбит/с",
                     ),
                   ),
                   const SizedBox(width: 20),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "ДО",
-                            style: TextStyle(color: textColor),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "13.04",
-                            style: TextStyle(
-                              fontSize: 22,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                  const Expanded(
+                    child: _InfoCard(
+                      title: "ДО",
+                      value: "13.04",
                     ),
                   ),
                 ],
@@ -281,15 +143,137 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const Spacer(),
 
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20),
               child: Text(
                 "ID: 4829105736",
-                style: TextStyle(color: textColor.withOpacity(0.7)),
+                style: TextStyle(color: Colors.grey),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NeumorphicButton extends StatelessWidget {
+  final bool isConnected;
+  const _NeumorphicButton({required this.isConnected});
+
+  @override
+  Widget build(BuildContext context) {
+    const bg = Color(0xFFF2F2F7);
+
+    return inset.Container(
+      width: 190,
+      height: 190,
+      decoration: inset.BoxDecoration(
+        color: bg,
+        shape: BoxShape.circle,
+        boxShadow: [
+          inset.BoxShadow(
+            blurRadius: 30,
+            offset: const Offset(15, 15),
+            color: Colors.grey.shade400,
+          ),
+          const inset.BoxShadow(
+            blurRadius: 30,
+            offset: Offset(-15, -15),
+            color: Colors.white,
+          ),
+        ],
+      ),
+      child: Center(
+        child: inset.Container(
+          width: 130,
+          height: 130,
+          decoration: inset.BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              inset.BoxShadow(
+                inset: true,
+                blurRadius: 20,
+                offset: const Offset(5, 5),
+                color: Colors.grey.shade300,
+              ),
+              inset.BoxShadow(
+                inset: true,
+                blurRadius: 20,
+                offset: const Offset(-5, -5),
+                color: Colors.white,
+              ),
+              inset.BoxShadow(
+                blurRadius: isConnected ? 25 : 0,
+                color: isConnected
+                    ? Colors.blue.withOpacity(0.4)
+                    : Colors.transparent,
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.ac_unit,
+            size: 60,
+            color: isConnected
+                ? Colors.blueAccent
+                : Colors.blueGrey,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _InfoCard({
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const bg = Color(0xFFF2F2F7);
+
+    return inset.Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: inset.BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          inset.BoxShadow(
+            blurRadius: 20,
+            offset: const Offset(10, 10),
+            color: Colors.grey.shade400,
+          ),
+          const inset.BoxShadow(
+            blurRadius: 20,
+            offset: Offset(-10, -10),
+            color: Colors.white,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
