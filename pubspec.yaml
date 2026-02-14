@@ -1,5 +1,7 @@
 name: arctic_vpn
-description: Arctic VPN - fake to real VPN app
+description: Arctic VPN - fake to real VPN
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -10,21 +12,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.5.1
-  shared_preferences: ^2.3.0
-  flutter_inset_box_shadow: ^1.0.8
+  
+  # Заменяем оригинальный пакет на рабочий форк (chitochi)
+  flutter_inset_shadow:  # ← обрати внимание: flutter_inset_shadow (без box)
+    git:
+      url: https://github.com/chitochi/flutter_inset_shadow.git
+      ref: main  # или укажи конкретный коммит, если main сломан
+
+  # flutter_launcher_icons: ... (твоя секция дальше)
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path:
-
 flutter:
   uses-material-design: true
   assets:
-
-    
+    # твои ассеты здесь, если есть
