@@ -12,13 +12,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # Заменяем оригинальный пакет на рабочий форк (chitochi)
-  flutter_inset_shadow:  # ← обрати внимание: flutter_inset_shadow (без box)
+
+  flutter_riverpod: ^2.5.1          # ← добавь эту строку (или ^3.0.0-dev.x если используешь Riverpod 3)
+
+  # твой git-пакет остаётся
+  flutter_inset_shadow:
     git:
       url: https://github.com/chitochi/flutter_inset_shadow.git
-      ref: main  # или укажи конкретный коммит, если main сломан
-
+      ref: main
   # flutter_launcher_icons: ... (твоя секция дальше)
 
 dev_dependencies:
