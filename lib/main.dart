@@ -1,11 +1,11 @@
-import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart' as inset;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const ArcticApp());
+  runApp(const ProviderScope(child: ArcticApp()));
 }
+
+/// ---------------- APP ----------------
 
 class ArcticApp extends StatelessWidget {
   const ArcticApp({super.key});
@@ -14,140 +14,106 @@ class ArcticApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
-        platform: TargetPlatform.iOS,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF2F2F7),
+        useMaterial3: true,
       ),
-      home: const ArcticHome(),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF000000),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
     );
   }
 }
 
-class ArcticHome extends StatefulWidget {
-  const ArcticHome({super.key});
+/// ---------------- PROVIDER ----------------
 
-  @override
-  State<ArcticHome> createState() => _ArcticHomeState();
+final vpnProvider =
+    StateNotifierProvider<VpnNotifier, bool>((ref) => VpnNotifier());
+
+class VpnNotifier extends StateNotifier<bool> {
+  VpnNotifier() : super(false);
+
+  void toggle() => state = !state;
 }
 
-class _ArcticHomeState extends State<ArcticHome> {
-  bool isConnected = false;
-  int seconds = 0;
-  Timer? timer;
-  double fakeSpeed = 0;
-  final Random random = Random();
+/// ---------------- HOME SCREEN ----------------
 
-  void toggleVPN() {
-    setState(() {
-      isConnected = !isConnected;
-    });
-
-    if (isConnected) {
-      timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() {
-          seconds++;
-          fakeSpeed = 40 + random.nextDouble() * 80;
-        });
-      });
-    } else {
-      timer?.cancel();
-      setState(() {
-        seconds = 0;
-        fakeSpeed = 0;
-      });
-    }
-  }
-
-  String formatTime(int totalSeconds) {
-    final m = totalSeconds ~/ 60;
-    final s = totalSeconds % 60;
-    return "${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}";
-  }
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const bg = Color(0xFFF2F2F7);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isConnected = ref.watch(vpnProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: bg,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
+            /// Контент
+            Column(
+              children: [
+                const SizedBox(height: 20),
 
-            const SizedBox(height: 16),
-
-            const Text(
-              "ARCTIC VPN",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                isConnected
-                    ? "VPN подключён"
-                    : "Чтобы включить VPN нажмите кнопку ниже",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
+                /// Заголовок
+                const Text(
+                  "ARCTIC VPN",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 50),
+                const Spacer(),
 
-            /// MAIN BUTTON
-            GestureDetector(
-              onTap: toggleVPN,
-              child: _NeumorphicButton(isConnected: isConnected),
-            ),
+                /// Кнопка
+                ArcticPowerButton(
+                  isConnected: isConnected,
+                  onTap: () =>
+                      ref.read(vpnProvider.notifier).toggle(),
+                ),
 
-            const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
-            Text(
-              formatTime(seconds),
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _InfoCard(
-                      title: "СКОРОСТЬ",
-                      value: "${fakeSpeed.toStringAsFixed(1)} мбит/с",
-                    ),
+                Text(
+                  isConnected ? "CONNECTED" : "DISCONNECTED",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(width: 20),
-                  const Expanded(
-                    child: _InfoCard(
-                      title: "ДО",
-                      value: "13.04",
-                    ),
+                ),
+
+                const Spacer(),
+
+                const Text(
+                  "ID: 4829105736",
+                  style: TextStyle(
+                    fontSize: 16,
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 30),
+              ],
             ),
 
-            const Spacer(),
-
-            const Padding(
-              padding: EdgeInsets.only(bottom: 20),
-              child: Text(
-                "ID: 4829105736",
-                style: TextStyle(color: Colors.grey),
+            /// Шестерёнка
+            Positioned(
+              top: 10,
+              right: 10,
+              child: IconButton(
+                icon: Icon(
+                  Icons.settings_rounded,
+                  size: 28,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                onPressed: () {
+                  // Здесь позже подключим overlay popup
+                },
               ),
             ),
           ],
@@ -157,123 +123,125 @@ class _ArcticHomeState extends State<ArcticHome> {
   }
 }
 
-class _NeumorphicButton extends StatelessWidget {
+/// ---------------- POWER BUTTON ----------------
+
+class ArcticPowerButton extends StatefulWidget {
   final bool isConnected;
-  const _NeumorphicButton({required this.isConnected});
+  final VoidCallback onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    const bg = Color(0xFFF2F2F7);
-
-    return inset.Container(
-      width: 190,
-      height: 190,
-      decoration: inset.BoxDecoration(
-        color: bg,
-        shape: BoxShape.circle,
-        boxShadow: [
-          inset.BoxShadow(
-            blurRadius: 30,
-            offset: const Offset(15, 15),
-            color: Colors.grey.shade400,
-          ),
-          const inset.BoxShadow(
-            blurRadius: 30,
-            offset: Offset(-15, -15),
-            color: Colors.white,
-          ),
-        ],
-      ),
-      child: Center(
-        child: inset.Container(
-          width: 130,
-          height: 130,
-          decoration: inset.BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              inset.BoxShadow(
-                inset: true,
-                blurRadius: 20,
-                offset: const Offset(5, 5),
-                color: Colors.grey.shade300,
-              ),
-              inset.BoxShadow(
-                inset: true,
-                blurRadius: 20,
-                offset: const Offset(-5, -5),
-                color: Colors.white,
-              ),
-              inset.BoxShadow(
-                blurRadius: isConnected ? 25 : 0,
-                color: isConnected
-                    ? Colors.blue.withOpacity(0.4)
-                    : Colors.transparent,
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.ac_unit,
-            size: 60,
-            color: isConnected
-                ? Colors.blueAccent
-                : Colors.blueGrey,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final String title;
-  final String value;
-
-  const _InfoCard({
-    required this.title,
-    required this.value,
+  const ArcticPowerButton({
+    super.key,
+    required this.isConnected,
+    required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) {
-    const bg = Color(0xFFF2F2F7);
+  State<ArcticPowerButton> createState() =>
+      _ArcticPowerButtonState();
+}
 
-    return inset.Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: inset.BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          inset.BoxShadow(
-            blurRadius: 20,
-            offset: const Offset(10, 10),
-            color: Colors.grey.shade400,
-          ),
-          const inset.BoxShadow(
-            blurRadius: 20,
-            offset: Offset(-10, -10),
-            color: Colors.white,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
+class _ArcticPowerButtonState extends State<ArcticPowerButton> {
+  bool pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor =
+        isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7);
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => pressed = true),
+      onTapUp: (_) {
+        setState(() => pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: 210,
+        height: 210,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            /// Внешний круг
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: 210,
+              height: 210,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: bgColor,
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 30,
+                          offset: const Offset(12, 12),
+                        ),
+                        BoxShadow(
+                          color: Colors.white,
+                          blurRadius: 30,
+                          offset: const Offset(-12, -12),
+                        ),
+                      ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+
+            /// Внутренний круг
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: isDark
+                    ? const LinearGradient(
+                        colors: [
+                          Color(0xFF2C2C2E),
+                          Color(0xFF1C1C1E),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : const LinearGradient(
+                        colors: [
+                          Colors.white,
+                          Color(0xFFEAEAF0),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                boxShadow: widget.isConnected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF4FC3F7)
+                              .withOpacity(0.45),
+                          blurRadius: 40,
+                          spreadRadius: 4,
+                        ),
+                      ]
+                    : [],
+              ),
             ),
-          ),
-        ],
+
+            /// Иконка
+            AnimatedScale(
+              duration: const Duration(milliseconds: 120),
+              scale: pressed ? 0.95 : 1,
+              child: Icon(
+                Icons.ac_unit,
+                size: 64,
+                color: widget.isConnected
+                    ? const Color(0xFF4FC3F7)
+                    : (isDark
+                        ? Colors.grey.shade400
+                        : Colors.blueGrey.shade400),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
