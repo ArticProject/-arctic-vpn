@@ -4,22 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'settings_screen.dart';
 
-// ============================================================================
-// ПРОВАЙДЕРЫ STATE
-// ============================================================================
-
-// Провайдер для статуса подключения
-final connectionStatusProvider = StateProvider<bool>((ref) => false);
-
-// Провайдер для таймера подключения (секунды)
 final connectionTimerProvider = StateProvider<int>((ref) => 14);
-
-// Провайдер для скорости (мбит/с)
 final speedProvider = StateProvider<double>((ref) => 0.0);
-
-// ============================================================================
-// ГЛАВНЫЙ ЭКРАН ПРИЛОЖЕНИЯ
-// ============================================================================
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -28,25 +14,31 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen>
-    with TickerProviderStateMixin {
+class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _rotationController;
   late AnimationController _pulseController;
+  late AnimationController _glowController;
 
   @override
   void initState() {
     super.initState();
     
-    // Контроллер для вращения снежинки
+    // ROTATION (медленное вращение)
     _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 8),
     )..repeat();
     
-    // Контроллер для пульсации снежинки
+    // PULSE (scale 1.0 → 1.12)
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    
+    // GLOW (тень)
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
   }
 
@@ -54,82 +46,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void dispose() {
     _rotationController.dispose();
     _pulseController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final connectionTimer = ref.watch(connectionTimerProvider);
+    final timer = ref.watch(connectionTimerProvider);
     final speed = ref.watch(speedProvider);
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.black, // Базовый чёрный фон
+      backgroundColor: const Color(0xFFE8E8E8),
       child: Stack(
         children: [
-          // ===================================================================
-          // ГРАДИЕНТНЫЙ ФОН (тёмно-синий → чёрный)
-          // ===================================================================
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF0A1929), // Тёмно-синий сверху
-                    Color(0xFF000000), // Чёрный снизу
-                  ],
-                  stops: [0.0, 0.7],
-                ),
-              ),
-            ),
-          ),
-          
-          // ===================================================================
-          // ЗАГОЛОВОК "ARCTIC VPN" (верхний левый угол)
-          // ===================================================================
+          // ARCTIC VPN
           Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 24,
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 20,
             child: const Text(
               'ARCTIC VPN',
               style: TextStyle(
-                color: CupertinoColors.white,
-                fontSize: 28,
+                color: CupertinoColors.black,
+                fontSize: 32,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
+                letterSpacing: 0.5,
+                fontFamily: '.SF Pro Display',
               ),
             ),
           ),
           
-          // ===================================================================
-          // КНОПКА НАСТРОЕК (шестерёнка, правый верхний угол)
-          // ===================================================================
+          // ШЕСТЕРЁНКА
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 20,
-            child: CupertinoButton(
-              padding: EdgeInsets.zero,
-              minSize: 44,
-              onPressed: () {
-                // Открываем модальное окно настроек
-                SettingsScreen.show(context);
-              },
+            top: MediaQuery.of(context).padding.top + 12,
+            right: 16,
+            child: _TappableButton(
+              onPressed: () => SettingsScreen.show(context),
               child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: CupertinoColors.white.withOpacity(0.12),
+                width: 52,
+                height: 52,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3A3A3C),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: CupertinoColors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: const Icon(
                   CupertinoIcons.gear_alt_fill,
@@ -140,37 +97,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           
-          // ===================================================================
-          // ЦЕНТРАЛЬНАЯ ЧАСТЬ: СНЕЖИНКА + ТАЙМЕР
-          // ===================================================================
+          // СНЕЖИНКА (rotation + pulse + glow)
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ГОЛУБАЯ СНЕЖИНКА (вращение + пульсация)
                 AnimatedBuilder(
                   animation: Listenable.merge([
                     _rotationController,
                     _pulseController,
+                    _glowController,
                   ]),
                   builder: (context, child) {
-                    final rotationValue = _rotationController.value;
-                    final pulseValue = _pulseController.value;
-                    final scale = 1.0 + (pulseValue * 0.1); // 1.0 → 1.1
+                    final rotation = _rotationController.value * 0.05; // 0 → 0.05 rad
+                    final pulse = _pulseController.value;
+                    final scale = 1.0 + (pulse * 0.12); // 1.0 → 1.12
+                    final glowOpacity = 0.1 + (_glowController.value * 0.2);
                     
                     return Transform.rotate(
-                      angle: rotationValue * 2 * math.pi,
+                      angle: rotation,
                       child: Transform.scale(
                         scale: scale,
                         child: Container(
-                          width: 180,
-                          height: 180,
+                          width: 240,
+                          height: 240,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: CupertinoColors.white.withOpacity(0.08),
+                            color: CupertinoColors.white,
                             boxShadow: [
+                              // NEUMORPHISM тени
                               BoxShadow(
-                                color: const Color(0xFF00BFA5).withOpacity(0.3),
+                                color: CupertinoColors.black.withOpacity(0.08),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                              BoxShadow(
+                                color: CupertinoColors.white.withOpacity(0.9),
+                                blurRadius: 8,
+                                offset: const Offset(0, -2),
+                              ),
+                              // ANIMATED GLOW
+                              BoxShadow(
+                                color: const Color(0xFF64B5F6).withOpacity(glowOpacity),
                                 blurRadius: 40,
                                 spreadRadius: 10,
                               ),
@@ -178,80 +146,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                           child: const Icon(
                             CupertinoIcons.snow,
-                            size: 90,
-                            color: Color(0xFF64B5F6), // Голубой
+                            size: 96,
+                            color: Color(0xFF64B5F6),
                           ),
                         ),
                       ),
                     );
                   },
                 ),
-                
-                const SizedBox(height: 32),
-                
-                // ТАЙМЕР ПОДКЛЮЧЕНИЯ (00:14)
+                const SizedBox(height: 48),
                 Text(
-                  _formatTimer(connectionTimer),
+                  _formatTimer(timer),
                   style: const TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 48,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 2,
+                    color: CupertinoColors.black,
+                    fontSize: 68,
+                    fontWeight: FontWeight.w200,
+                    letterSpacing: 3,
+                    fontFamily: '.SF Pro Display',
                   ),
                 ),
               ],
             ),
           ),
           
-          // ===================================================================
-          // НИЖНЯЯ ПАНЕЛЬ: ДВЕ БЕЛЫЕ КАПСУЛЬНЫЕ КАРТОЧКИ
-          // ===================================================================
+          // ID
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 24,
-            left: 20,
-            right: 20,
-            child: Row(
-              children: [
-                // Левая карточка: СКОРОСТЬ
-                Expanded(
-                  child: _buildSpeedCard(
-                    label: 'СКОРОСТЬ',
-                    value: '${speed.toStringAsFixed(0)} мбит/с',
-                    icon: CupertinoIcons.arrow_down,
-                  ),
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Правая карточка: ДО
-                Expanded(
-                  child: _buildSpeedCard(
-                    label: 'ДО',
-                    value: '13.04',
-                    icon: CupertinoIcons.calendar,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // ===================================================================
-          // ID ВНИЗУ (самый низ экрана)
-          // ===================================================================
-          Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 120,
+            bottom: MediaQuery.of(context).padding.bottom + 180,
             left: 0,
             right: 0,
             child: Center(
               child: Text(
                 'ID: 4829105736',
                 style: TextStyle(
-                  color: CupertinoColors.systemGrey.withOpacity(0.6),
+                  color: CupertinoColors.systemGrey.withOpacity(0.5),
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
+                  fontFamily: '.SF Pro Text',
+                  letterSpacing: 0.3,
                 ),
               ),
+            ),
+          ),
+          
+          // КАРТОЧКИ (с tap-анимациями)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 40,
+            left: 20,
+            right: 20,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _TappableCard(
+                    child: _buildCard('СКОРОСТЬ', '${speed.toStringAsFixed(0)} мбит/с', true),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _TappableCard(
+                    child: _buildCard('ДО', '13.04', false),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -259,74 +214,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ===========================================================================
-  // БЕЛАЯ КАПСУЛЬНАЯ КАРТОЧКА (с эффектом выпуклости)
-  // ===========================================================================
-  Widget _buildSpeedCard({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
+  Widget _buildCard(String label, String value, bool icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        // БЕЛЫЙ фон
-        color: CupertinoColors.white,
-        // КАПСУЛЬНАЯ форма (сильное закругление)
-        borderRadius: BorderRadius.circular(24),
-        // ТЕНИ для выпуклости
-        boxShadow: [
-          // Основная тень снизу
-          BoxShadow(
-            color: CupertinoColors.black.withOpacity(0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-          // Светлая подсветка сверху (inner glow эффект)
-          BoxShadow(
-            color: CupertinoColors.white.withOpacity(0.9),
-            blurRadius: 2,
-            offset: const Offset(0, -1),
-          ),
-        ],
-        // Лёгкий градиент для объёма
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            CupertinoColors.white,
-            const Color(0xFFF8F8F8),
-          ],
+          colors: [CupertinoColors.white, Color(0xFFFAFAFA)],
         ),
+        // CAPSULE ФОРМА (pill shape)
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(4, 6),
+          ),
+          BoxShadow(
+            color: CupertinoColors.white.withOpacity(0.9),
+            blurRadius: 8,
+            offset: const Offset(-2, -2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Лейбл (СКОРОСТЬ / ДО)
           Text(
             label,
             style: TextStyle(
-              color: CupertinoColors.systemGrey.withOpacity(0.7),
-              fontSize: 11,
+              color: CupertinoColors.systemGrey.withOpacity(0.6),
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
+              fontFamily: '.SF Pro Text',
             ),
           ),
-          
           const SizedBox(height: 8),
-          
-          // Значение (0 мбит/с / 13.04)
           Row(
             children: [
-              // Иконка (только для скорости)
-              if (label == 'СКОРОСТЬ')
+              if (icon) ...[
                 Icon(
-                  icon,
+                  CupertinoIcons.arrow_down,
                   size: 18,
-                  color: CupertinoColors.systemGrey,
+                  color: CupertinoColors.systemGrey.withOpacity(0.7),
                 ),
-              if (label == 'СКОРОСТЬ') const SizedBox(width: 8),
-              
+                const SizedBox(width: 6),
+              ],
               Expanded(
                 child: Text(
                   value,
@@ -334,7 +269,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: CupertinoColors.black,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.3,
+                    fontFamily: '.SF Pro Display',
                   ),
                 ),
               ),
@@ -342,32 +278,112 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-    )
-    // LOOP АНИМАЦИЯ: лёгкая пульсация + glow
-    .animate(
-      onPlay: (controller) => controller.repeat(),
-    )
-    .scale(
-      begin: const Offset(1.0, 1.0),
-      end: const Offset(1.02, 1.02),
-      duration: 2200.ms,
-      curve: Curves.easeInOut,
-    )
-    .then()
-    .scale(
-      begin: const Offset(1.02, 1.02),
-      end: const Offset(1.0, 1.0),
-      duration: 2200.ms,
-      curve: Curves.easeInOut,
     );
   }
 
-  // ===========================================================================
-  // ФОРМАТИРОВАНИЕ ТАЙМЕРА (секунды → MM:SS)
-  // ===========================================================================
   String _formatTimer(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+}
+
+// TAP-АНИМАЦИЯ ДЛЯ КАРТОЧЕК (scale 1.0 → 0.96 + glow)
+class _TappableCard extends StatefulWidget {
+  final Widget child;
+  const _TappableCard({required this.child});
+
+  @override
+  State<_TappableCard> createState() => _TappableCardState();
+}
+
+class _TappableCardState extends State<_TappableCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+// TAP-АНИМАЦИЯ ДЛЯ КНОПОК
+class _TappableButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onPressed;
+  const _TappableButton({required this.child, required this.onPressed});
+
+  @override
+  State<_TappableButton> createState() => _TappableButtonState();
+}
+
+class _TappableButtonState extends State<_TappableButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onPressed();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
