@@ -576,3 +576,22 @@ void showProtocolDialog(BuildContext context, WidgetRef ref) {
     ),
   );
 }
+void showInfo(BuildContext context, String title, String content) {
+  showModalBottomSheet(
+    context: context,
+    builder: (_) => Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 20),
+          Text(content, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
+}
+
