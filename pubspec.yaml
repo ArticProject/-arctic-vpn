@@ -1,6 +1,5 @@
-
-name: arctic_vpn
-description: Arctic VPN - Secure VPN with iOS Design
+name: vpn_app
+description: Premium iOS-style VPN application
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,40 +9,32 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # State Management
+  
+  # State management
   flutter_riverpod: ^2.5.1
   
-  # Ваш пакет
-  flutter_inset_shadow:
-    git:
-      url: https://github.com/chitochi/flutter_inset_shadow.git
-      ref: main
+  # iOS-style icons
+  cupertino_icons: ^1.0.8
+  
+  # Animations
+  flutter_animate: ^4.5.0
+  animations: ^2.0.11
+  
+  # SVG support (if needed for custom icons)
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  
-  # Генератор иконок
-  flutter_launcher_icons: ^0.13.1
-
-# Конфигурация иконки
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon.png"
-  adaptive_icon_background: "#1E88E5"
-  adaptive_icon_foreground: "assets/icon.png"
-  
-  # iOS иконки
-  ios_icon_size: 1024
-  
-  # Android иконки
-  android_12_adaptive_icon: true
 
 flutter:
-  uses-material-design: true
+  uses-material-design: false  # Мы используем только Cupertino
   
-  assets:
-    - assets/icon.png
+  # Если будут кастомные шрифты или assets:
+  # assets:
+  #   - assets/images/
+  # fonts:
+  #   - family: SF Pro
+  #     fonts:
+  #       - asset: fonts/SF-Pro.ttf
