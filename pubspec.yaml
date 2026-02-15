@@ -1,9 +1,7 @@
-name: arctic_vpn
-description: Arctic VPN - fake to real VPN
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none'
 
+name: arctic_vpn
+description: Arctic VPN - Secure VPN with iOS Design
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -13,20 +11,39 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_riverpod: ^2.5.1          # ← добавь эту строку (или ^3.0.0-dev.x если используешь Riverpod 3)
-
-  # твой git-пакет остаётся
+  # State Management
+  flutter_riverpod: ^2.5.1
+  
+  # Ваш пакет
   flutter_inset_shadow:
     git:
       url: https://github.com/chitochi/flutter_inset_shadow.git
       ref: main
-  # flutter_launcher_icons: ... (твоя секция дальше)
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.0
+  
+  # Генератор иконок
+  flutter_launcher_icons: ^0.13.1
+
+# Конфигурация иконки
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "#1E88E5"
+  adaptive_icon_foreground: "assets/icon.png"
+  
+  # iOS иконки
+  ios_icon_size: 1024
+  
+  # Android иконки
+  android_12_adaptive_icon: true
 
 flutter:
   uses-material-design: true
+  
   assets:
-    # твои ассеты здесь, если есть
+    - assets/icon.png
