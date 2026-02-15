@@ -24,4 +24,4 @@ workflows:
     publishing:
       email:
         recipients:
-          mihailulybin67@gmail.com
+        - mihailulybin67@gmail.com
