@@ -1,62 +1,33 @@
-name: arctic_vpn
-description: Arctic VPN — холодная и надёжная защита
+name: vpn_app
+description: Premium iOS-style VPN application
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # State management
+  
   flutter_riverpod: ^2.5.1
-
-  # iOS-style UI
   cupertino_icons: ^1.0.8
-
-  # Анимации (основные)
-  flutter_animate: ^4.5.0          # ← плавные, расслабляющие анимации (slide, fade, pulse)
-  animations: ^2.0.11              # ← Material/Cupertino переходы, hero, shared axis
-
-  # Дополнительные анимации (если захочешь вектор или Lottie)
-  rive: ^0.13.0                    # ← супер-плавные векторные анимации (Rive файлы)
-  lottie: ^3.1.2                   # ← Lottie-анимации (JSON из After Effects)
-
-  # Ассеты и SVG
+  flutter_animate: ^4.5.0
+  animations: ^2.0.11
   flutter_svg: ^2.0.10+1
-
-  # Шрифты (SF Pro)
-  google_fonts: ^6.2.1
-
-  # Разрешения и уведомления
-  permission_handler: ^11.3.1
-  flutter_local_notifications: ^17.2.2
-
-  # Ссылки (TG-бот и канал)
-  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
 
-  # Генерация иконки приложения
-  flutter_launcher_icons: ^0.14.1
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "icon.png"
+  adaptive_icon_background: "#1E88E5"
+  adaptive_icon_foreground: "icon.png"
 
 flutter:
   uses-material-design: false
-
-  # Ассеты
-  assets:
-    - assets/icons/                 # вся папка с иконками
-    - assets/icons/icon.png         # твоя иконка (пингвин/айсберг)
-    - assets/animations/            # если добавишь Rive/Lottie файлы
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/icons/icon.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/icon.png"
