@@ -3,33 +3,14 @@ workflows:
     name: Android Release Build
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: default
-    cache:
-      cache_paths:
-        - $FLUTTER_ROOT/.pub-cache
-        - $HOME/.gradle/caches
-    triggering:
-      events:
-        - push
-        - pull_request
-      branch_patterns:
-        - pattern: '*'
-          include: true
-          source: true
     scripts:
-      - name: Get Flutter packages
+      - name: Setup project
         script: |
-          flutter packages pub get
+          flutter create . --platforms=android
+          flutter pub get
           
-      - name: Build Android APK
-        script: |
-          flutter build apk --release
+      - name: Build APK
+        script: flutter build apk --release
           
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
-      
-    publishing:
-      email:
-        recipients:
-          - your-email@example.com
