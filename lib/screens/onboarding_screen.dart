@@ -1,9 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../models/onboarding_model.dart';
-import '../widgets/glass_card.dart';
 import '../widgets/glass_button.dart';
-import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,45 +9,63 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> 
-    with SingleTickerProviderStateMixin {
-  late PageController _pageController;
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
   int _currentPage = 0;
-  late AnimationController _animationController;
 
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _nextPage() {
-    if (_currentPage < onboardingPages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _finishOnboarding();
-    }
-  }
-
-  void _finishOnboarding() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
-  }
+  final List<Map<String, dynamic>> _pages = [
+    {
+      'title': 'Добро пожаловать\nв Arctic VPN',
+      'subtitle': 'Безопасный и быстрый доступ к интернету',
+      'icon': '❄️',
+      'features': [
+        {
+          'icon': '🔒',
+          'title': 'Защита данных',
+          'desc': 'Военный уровень шифрования AES-256',
+          'color': Color(0xFF007AFF),
+        },
+      ],
+    },
+    {
+      'title': 'Вам доступно\n10 ГБ интернета',
+      'subtitle': 'Пробный период для новых пользователей',
+      'icon': '🎁',
+      'features': [
+        {
+          'icon': '📊',
+          'title': '10 ГБ трафика',
+          'desc': 'Бесплатно используйте высокоскоростной интернет',
+          'color': Color(0xFF34C759),
+        },
+        {
+          'icon': '⚡',
+          'title': 'Высокая скорость',
+          'desc': 'Серверы по всему миру',
+          'color': Color(0xFFFF9500),
+        },
+        {
+          'icon': '🛡️',
+          'title': 'Безопасность',
+          'desc': 'Полная анонимность в сети',
+          'color': Color(0xFF5856D6),
+        },
+      ],
+    },
+    {
+      'title': 'Начните\nпрямо сейчас',
+      'subtitle': 'Одна кнопка для защиты ваших данных',
+      'icon': '🚀',
+      'features': [
+        {
+          'icon': '👆',
+          'title': 'Быстрый старт',
+          'desc': 'Нажмите кнопку и получите доступ к интернету',
+          'color': Color(0xFF007AFF),
+        },
+      ],
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -59,49 +74,39 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
             Align(
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: GestureDetector(
-                  onTap: _finishOnboarding,
-                  child: Text(
+                  onTap: () => _finish(),
+                  child: const Text(
                     'Пропустить',
                     style: TextStyle(
-                      color: const Color(0xFF007AFF).withOpacity(0.8),
+                      color: Color(0xFF007AFF),
                       fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
               ),
             ),
-
-            // Page content
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemCount: onboardingPages.length,
-                itemBuilder: (context, index) {
-                  return _buildPage(onboardingPages[index]);
-                },
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemCount: _pages.length,
+                itemBuilder: (context, index) => _buildPage(_pages[index]),
               ),
             ),
-
-            // Bottom section
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Page indicators
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      onboardingPages.length,
+                      _pages.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -116,15 +121,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Continue button
                   GlassButton(
-                    text: _currentPage == onboardingPages.length - 1 
-                        ? 'Начать' 
-                        : 'Продолжить',
-                    onPressed: _nextPage,
+                    text: _currentPage == _pages.length - 1 ? 'Начать' : 'Продолжить',
+                    onPressed: () {
+                      if (_currentPage < _pages.length - 1) {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                        );
+                      } else {
+                        _finish();
+                      }
+                    },
                   ),
                 ],
               ),
@@ -135,112 +144,112 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
-  Widget _buildPage(OnboardingModel page) {
+  Widget _buildPage(Map<String, dynamic> page) {
+    final features = page['features'] as List;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (page.isWelcome) ...[
-            // Snowflake icon for welcome
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: const Color(0xFF007AFF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: const Center(
-                child: Text(
-                  '❄️',
-                  style: TextStyle(fontSize: 60),
-                ),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Center(
+              child: Text(
+                page['icon'],
+                style: const TextStyle(fontSize: 60),
               ),
             ),
-            const SizedBox(height: 40),
-          ],
-
-          // Title
+          ),
+          const SizedBox(height: 40),
           Text(
-            page.title,
+            page['title'],
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
               color: Color(0xFF000000),
               height: 1.2,
-              letterSpacing: -0.5,
             ),
           ),
-
-          if (page.subtitle.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              page.subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 17,
-                color: Color(0xFF8E8E93),
-                height: 1.4,
-              ),
+          const SizedBox(height: 12),
+          Text(
+            page['subtitle'],
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 17,
+              color: Color(0xFF8E8E93),
             ),
-          ],
-
+          ),
           const SizedBox(height: 40),
-
-          // Features list
-          ...page.features.map((feature) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: GlassCard(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: feature.color.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            feature.icon,
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              feature.title,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF000000),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              feature.description,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Color(0xFF8E8E93),
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )),
+          ...features.map((f) => _buildFeatureCard(f)),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeatureCard(Map<String, dynamic> f) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: (f['color'] as Color).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(child: Text(f['icon'], style: const TextStyle(fontSize: 22))),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  f['title'],
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  f['desc'],
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _finish() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 }
