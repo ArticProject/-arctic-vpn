@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../widgets/settings_item.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,13 +18,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: const BoxDecoration(
         color: Color(0xFFF2F2F7),
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          // Handle bar
           Container(
             margin: const EdgeInsets.only(top: 8),
             width: 36,
@@ -35,8 +31,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               borderRadius: BorderRadius.circular(3),
             ),
           ),
-
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -44,44 +38,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 const Text(
                   'Полные настройки',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF000000),
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.8),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                        ),
-                      ],
                     ),
-                    child: const Icon(
-                      Icons.close, // Material иконка
-                      size: 20,
-                      color: Color(0xFF8E8E93),
-                    ),
+                    child: const Icon(Icons.close, size: 18, color: Color(0xFF8E8E93)),
                   ),
                 ),
               ],
             ),
           ),
-
-          // Settings list
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
@@ -89,65 +65,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
-                      SettingsItem(
-                        icon: Icons.public, // Material
-                        title: 'Протокол',
-                        onTap: () {},
-                      ),
-                      SettingsItem(
-                        icon: Icons.security, // Material
-                        title: 'Безопасность',
-                        onTap: () {},
-                      ),
-                      SettingsItem(
-                        icon: Icons.credit_card, // Material
-                        title: 'О подписке',
-                        onTap: () {},
-                      ),
-                      SettingsItem(
-                        icon: Icons.info_outline, // Material
-                        title: 'О приложении',
-                        onTap: () {},
-                      ),
-                      SettingsItem(
-                        icon: Icons.more_horiz, // Material
-                        title: 'Больше',
-                        onTap: () {},
-                      ),
+                      _buildItem(Icons.language, 'Протокол'),
+                      _buildItem(Icons.shield_outlined, 'Безопасность'),
+                      _buildItem(Icons.credit_card_outlined, 'О подписке'),
+                      _buildItem(Icons.info_outline, 'О приложении'),
+                      _buildItem(Icons.more_horiz, 'Больше'),
                       const SizedBox(height: 16),
-                      SettingsItem(
-                        icon: Icons.dns, // Material - серверы
-                        title: 'Серверы',
-                        onTap: () {},
-                      ),
-                      SettingsItem(
-                        icon: Icons.lock_outline, // Material
-                        title: 'Шифрование',
-                        onTap: () {},
-                      ),
+                      _buildItem(Icons.dns_outlined, 'Серверы'),
+                      _buildItem(Icons.lock_outline, 'Шифрование'),
                       const SizedBox(height: 16),
-                      SettingsItem(
-                        icon: Icons.description_outlined, // Material - логи
-                        title: 'Логи',
-                        onTap: () {},
-                      ),
-                      SettingsToggle(
-                        icon: Icons.sync, // Material
-                        title: 'Автоподключение',
-                        value: _autoConnect,
-                        onChanged: (v) => setState(() => _autoConnect = v),
-                      ),
-                      SettingsToggle(
-                        icon: Icons.dark_mode_outlined, // Material
-                        title: 'Темная тема',
-                        value: _darkMode,
-                        onChanged: (v) => setState(() => _darkMode = v),
-                      ),
+                      _buildItem(Icons.description_outlined, 'Логи'),
+                      _buildToggle(Icons.sync, 'Автоподключение', _autoConnect, (v) => setState(() => _autoConnect = v)),
+                      _buildToggle(Icons.dark_mode_outlined, 'Темная тема', _darkMode, (v) => setState(() => _darkMode = v)),
                     ],
                   ),
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItem(IconData icon, String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        border: Border(bottom: BorderSide(color: Colors.black.withOpacity(0.05))),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF007AFF)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(title, style: const TextStyle(fontSize: 17))),
+          const Icon(Icons.chevron_right, size: 20, color: Color(0xFFC7C7CC)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggle(IconData icon, String title, bool value, ValueChanged<bool> onChanged) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        border: Border(bottom: BorderSide(color: Colors.black.withOpacity(0.05))),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF007AFF)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(title, style: const TextStyle(fontSize: 17))),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF34C759),
           ),
         ],
       ),
