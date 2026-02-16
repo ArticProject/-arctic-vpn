@@ -1,30 +1,35 @@
 workflows:
-  android-build:
-    name: Android Build
-    max_build_duration: 30
-    
+  android-release:
+    name: Android Release Build
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
-    
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.gradle/caches
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
     scripts:
       - name: Get Flutter packages
-        script: flutter pub get
-      
-      - name: Create Flutter project structure
-        script: flutter create . --platforms=android
-      
-      - name: Generate app icons
-        script: dart run flutter_launcher_icons
-      
-      - name: Build APK
-        script: flutter build apk --release
-    
+        script: |
+          flutter packages pub get
+          
+      - name: Build Android APK
+        script: |
+          flutter build apk --release
+          
     artifacts:
-      - build/app/outputs/flutter-apk/*.apk
-    
+      - build/app/outputs/flutter-apk/app-release.apk
+      
     publishing:
       email:
         recipients:
-          - твоя.почта@gmail.com
+          - your-email@example.com
