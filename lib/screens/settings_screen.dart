@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../widgets/settings_item.dart';
 
@@ -18,9 +17,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F7),
-        borderRadius: const BorderRadius.vertical(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF2F2F7),
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -54,15 +53,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    width: 32,
-                    height: 32,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.8),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                     child: const Icon(
-                      CupertinoIcons.xmark,
-                      size: 16,
+                      Icons.close, // Material иконка
+                      size: 20,
                       color: Color(0xFF8E8E93),
                     ),
                   ),
@@ -85,55 +90,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
                       SettingsItem(
-                        icon: CupertinoIcons.globe,
+                        icon: Icons.public, // Material
                         title: 'Протокол',
                         onTap: () {},
                       ),
                       SettingsItem(
-                        icon: CupertinoIcons.shield_fill,
+                        icon: Icons.security, // Material
                         title: 'Безопасность',
                         onTap: () {},
                       ),
                       SettingsItem(
-                        icon: CupertinoIcons.creditcard_fill,
+                        icon: Icons.credit_card, // Material
                         title: 'О подписке',
                         onTap: () {},
                       ),
                       SettingsItem(
-                        icon: CupertinoIcons.info_circle_fill,
+                        icon: Icons.info_outline, // Material
                         title: 'О приложении',
                         onTap: () {},
                       ),
                       SettingsItem(
-                        icon: CupertinoIcons.ellipsis_circle_fill,
+                        icon: Icons.more_horiz, // Material
                         title: 'Больше',
                         onTap: () {},
                       ),
                       const SizedBox(height: 16),
                       SettingsItem(
-                        icon: CupertinoIcons.square_stack_3d_up_fill,
+                        icon: Icons.dns, // Material - серверы
                         title: 'Серверы',
                         onTap: () {},
                       ),
                       SettingsItem(
-                        icon: CupertinoIcons.lock_fill,
+                        icon: Icons.lock_outline, // Material
                         title: 'Шифрование',
                         onTap: () {},
                       ),
                       const SizedBox(height: 16),
                       SettingsItem(
-                        icon: CupertinoIcons.doc_text_fill,
+                        icon: Icons.description_outlined, // Material - логи
                         title: 'Логи',
                         onTap: () {},
                       ),
                       SettingsToggle(
-                        icon: CupertinoIcons.arrow_2_circlepath,
+                        icon: Icons.sync, // Material
                         title: 'Автоподключение',
                         value: _autoConnect,
                         onChanged: (v) => setState(() => _autoConnect = v),
                       ),
                       SettingsToggle(
-                        icon: CupertinoIcons.moon_fill,
+                        icon: Icons.dark_mode_outlined, // Material
                         title: 'Темная тема',
                         value: _darkMode,
                         onChanged: (v) => setState(() => _darkMode = v),
