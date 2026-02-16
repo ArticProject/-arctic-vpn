@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SettingsItem extends StatelessWidget {
@@ -20,7 +19,7 @@ class SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -36,33 +35,34 @@ class SettingsItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: const Color(0xFF007AFF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                size: 18,
+                size: 20,
                 color: const Color(0xFF007AFF),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   color: Color(0xFF000000),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             if (trailing != null) trailing!,
             if (showArrow && trailing == null)
               const Icon(
-                CupertinoIcons.chevron_right,
-                size: 18,
+                Icons.chevron_right, // Material
+                size: 22,
                 color: Color(0xFFC7C7CC),
               ),
           ],
@@ -102,32 +102,34 @@ class SettingsToggle extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: const Color(0xFF007AFF).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              size: 18,
+              size: 20,
               color: const Color(0xFF007AFF),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               title,
               style: const TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 color: Color(0xFF000000),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          CupertinoSwitch(
+          Switch(
             value: value,
             onChanged: onChanged,
             activeColor: const Color(0xFF34C759),
+            activeTrackColor: const Color(0xFF34C759).withOpacity(0.3),
           ),
         ],
       ),
