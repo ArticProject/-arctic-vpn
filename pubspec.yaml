@@ -1,5 +1,5 @@
 name: arctic_vpn
-description: Arctic VPN - iOS style VPN app
+description: Arctic VPN for Android
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,7 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.6
+  # Заменил cupertino_icons на material + адаптивные иконки
+  material_design_icons_flutter: ^7.0.7296
   shared_preferences: ^2.2.2
   flutter_svg: ^2.0.9
 
