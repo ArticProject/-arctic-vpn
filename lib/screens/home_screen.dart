@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../widgets/connection_button.dart';
-import '../widgets/stat_card.dart';
-import '../widgets/glass_card.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,7 +16,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   int _seconds = 0;
   String _speed = '0';
-  String _ping = '13.04';
 
   void _toggleConnection() {
     if (_isConnected) {
@@ -32,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } else {
       setState(() => _isConnecting = true);
-      
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           setState(() {
@@ -49,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
-        // Simulate speed changes
         if (_seconds % 3 == 0) {
           _speed = (double.parse(_speed) + 0.5).toStringAsFixed(1);
         }
@@ -74,141 +67,189 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            // Main content
-            Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'ARCTIC VPN',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -1,
-                          color: Color(0xFF000000),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _showMenu(context),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            CupertinoIcons.ellipsis,
-                            color: Color(0xFF007AFF),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Info card
-                if (!_isConnected) ...[
-                  GlassCard(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Text(
-                      'Чтобы включить ВПН нажмите на кнопку',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: Color(0xFF3C3C43),
-                        height: 1.4,
-                      ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ARCTIC VPN',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -1,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  GestureDetector(
+                    onTap: () => _showSettings(context),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white.withOpacity(0.5)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.more_vert, color: Color(0xFF007AFF)),
+                    ),
+                  ),
                 ],
-
-                // Connection button
-                ConnectionButton(
-                  isConnected: _isConnected,
-                  isConnecting: _isConnecting,
-                  onTap: _toggleConnection,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Timer
-                Text(
-                  _formatTime(_seconds),
-                  style: const TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF000000),
-                    letterSpacing: -0.5,
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Stats row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      StatCard(
-                        title: 'СКОРОСТЬ',
-                        value: '$_speed мбит/с',
-                      ),
-                      const SizedBox(width: 12),
-                      StatCard(
-                        title: 'ПИНГ',
-                        value: '$_ping',
-                        subtitle: 'мс',
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // ID
-                Text(
-                  'ID: 4829105736',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: const Color(0xFF8E8E93),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-              ],
+              ),
             ),
+            const Spacer(),
+            if (!_isConnected)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.5)),
+                ),
+                child: const Text(
+                  'Чтобы включить ВПН нажмите на кнопку',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 17, color: Color(0xFF3C3C43)),
+                ),
+              ),
+            if (!_isConnected) const SizedBox(height: 40),
+            _buildConnectionButton(),
+            const SizedBox(height: 24),
+            Text(
+              _formatTime(_seconds),
+              style: const TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildStatCard('СКОРОСТЬ', '$_speed мбит/с'),
+                  const SizedBox(width: 12),
+                  _buildStatCard('ДО', '13.04'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'ID: 4829105736',
+              style: TextStyle(fontSize: 15, color: Color(0xFF8E8E93)),
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  void _showMenu(BuildContext context) {
+  Widget _buildConnectionButton() {
+    return GestureDetector(
+      onTap: _isConnecting ? null : _toggleConnection,
+      child: Container(
+        width: 200,
+        height: 200,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withOpacity(0.8),
+          boxShadow: [
+            BoxShadow(
+              color: _isConnected
+                  ? const Color(0xFF34C759).withOpacity(0.3)
+                  : const Color(0xFF007AFF).withOpacity(0.2),
+              blurRadius: 40,
+              spreadRadius: 5,
+            ),
+            BoxShadow(
+              color: Colors.white.withOpacity(0.8),
+              blurRadius: 20,
+              offset: const Offset(-10, -10),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(10, 10),
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+              ),
+              child: Center(
+                child: _isConnecting
+                    ? const CircularProgressIndicator(color: Color(0xFF007AFF))
+                    : _isConnected
+                        ? const Icon(Icons.check_rounded, size: 80, color: Color(0xFF34C759))
+                        : const Text('❄️', style: TextStyle(fontSize: 80)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value) {
+    return Expanded(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.5)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF8E8E93),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSettings(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => const SettingsScreen(),
+      builder: (_) => const SettingsScreen(),
     );
   }
 }
